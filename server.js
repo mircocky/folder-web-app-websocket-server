@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
     users[username] = socket.id;
     console.log(`${username} logged in`);
     console.log(`${users[username]} logged in`);
-    console.log(`${users['100000027']} is id`);
+    // console.log(`${users['100000027']} is id`);
 
     
   }); 
