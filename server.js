@@ -13,7 +13,7 @@ app.use(cors());
 
 io.attach(server, {
     cors: {
-      origin: ['http://localhost:3001', '*'], // Set the allowed origins
+      origin: ['http://localhost:3001', 'https://port-0-folder-web-app-32updzt2alppbaefq.sel4.cloudtype.app', '*'], // Set the allowed origins
       methods: ['GET', 'POST'],
       credentials: true,
     },
