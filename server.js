@@ -20,6 +20,8 @@ io.attach(server, {
   });
 
 const users = {};
+
+
 io.on('connection', (socket) => {
   console.log(`A user connected. Socket ID: ${socket.id}`);
   console.log('A user connected');
@@ -31,44 +33,79 @@ io.on('connection', (socket) => {
     io.emit('message', msg);
   });
 
-  socket.on('login', (username) => {
-    users[username] = socket.id;
-    console.log(`${username} logged in`);
-    console.log(`${users[username]} logged in`);
-    // console.log(`${users['100000027']} is id`);
 
-    
-  }); 
+  socket.on('login', (channel) => {
+    // Ensure that the user is associated with the specified channels
+    if (!users[channel]) {
+      users[channel] = [];
+    }
+
+    // Add the user's socket.id to the channel
+    users[channel].push(socket.id);
+  
+    console.log(`${socket.id} logged in to channel: ${channel}`);
+    console.log('Current state of users:', users);
+  });
+
 
   socket.on('privateMessage', (data) => {
-    // const toSocketId = users[to];
-    // console.log(toSocketId)
-    let username_from = data['username_from']
-    let username_to = data['username_to']
-    let message = data['message']
-    let message_for_web = data['message_for_web']
+    let username_from = data['username_from'];
+    let username_to = data['username_to'];
+    let message = data['message'];
+    let message_for_web = data['message_for_web'];
+    let selected_job_id_list = data['selected_job_id_list']
+  
     console.log(`${users[username_to]}`);
-
-    console.log(message)
-
-    // let username_from = Object.keys(users).find(username => users[username] === socket.id);
-
+    console.log(message);
+  
     if (users[username_to]) {
-      // Send the private message to the specific user
-      console.log('here')
-      io.to(users[username_to]).emit('privateMessage', {username_from, username_to, message, message_for_web});
-
+      // Send the private message to all users in the channel, including the sender
+      users[username_to].forEach((socketId) => {
+        console.log('here');
+        io.to(socketId).emit('privateMessage', { username_from, channel: username_to, message, message_for_web, selected_job_id_list});
+      });
     } else {
-      console.log(`User ${username_to} not found`);
+      console.log(`Channel/User ${username_to} not found`);
     }
   });
 
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
+  socket.on('privateMessage1', (data) => {
+    let username_from = data['username_from'];
+    let username_to = data['username_to'];
+    let message = data['message'];
+    let message_for_web = data['message_for_web'];
+    let selected_job_id_list = data['selected_job_id_list']
+  
+    console.log(`${users[username_to]}`);
+    console.log(message);
+  
+    if (users[username_to]) {
+      // Send the private message to all users in the channel, including the sender
+      users[username_to].forEach((socketId) => {
+        console.log('here');
+        io.to(socketId).emit('privateMessage1', { username_from, channel: username_to, message, message_for_web, selected_job_id_list});
+      });
+    } else {
+      console.log(`Channel/User ${username_to} not found`);
+    }
   });
+
+  socket.on('disconnect', () => {
+    console.log(`User disconnected. Socket ID: ${socket.id}`);
+    
+    // Remove the disconnected user's socket ID from the users object
+    Object.keys(users).forEach((channel) => {
+      users[channel] = users[channel].filter((socketId) => socketId !== socket.id);
+      if (users[channel].length === 0) {
+        delete users[channel];
+      }
+    });
+
+    console.log('Current state of users:', users);
+  });
+  
 });
+
 
 const PORT = 3000;
 
