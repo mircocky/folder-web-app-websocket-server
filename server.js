@@ -45,6 +45,9 @@ io.on('connection', (socket) => {
   
     console.log(`${socket.id} logged in to channel: ${channel}`);
     console.log('Current state of users:', users);
+
+    io.emit('login_response', 1)
+
   });
 
 
